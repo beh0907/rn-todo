@@ -4,10 +4,11 @@ import SafeInputView from "../components/SafeInputView";
 import {useEffect, useRef, useState} from "react";
 import Button from "../components/Button";
 import {signIn} from "../api/Auth";
+import PropTypes from "prop-types";
 
-const SignInScreen = () => {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+const SignInScreen = ({navigation}) => {
+    const [email, setEmail] = useState('123@naver.com')
+    const [password, setPassword] = useState('123456789')
     const [disabled, setDisabled] = useState(true)
     const [isLoading, setIsLoading] = useState(false)
     const passwordRef = useRef(null)
@@ -21,6 +22,9 @@ const SignInScreen = () => {
             const data = await signIn(email, password);
             console.log('data', data)
             setIsLoading(false)
+
+            // 리스트 화면이동 이동
+            navigation.navigate('List')
         } catch (e) {
             Alert.alert('로그인 실패', e, [
                 {text: '확인', onPress: () => {setIsLoading(false)}}
@@ -54,6 +58,10 @@ const SignInScreen = () => {
             </View>
         </SafeInputView>
     )
+}
+
+SignInScreen.protTypes = {
+    navigation:PropTypes.object
 }
 
 const styles = StyleSheet.create({

@@ -1,7 +1,7 @@
 import React from 'react';
 
-const EMAIL = '123123'
-const PASSWORD = '0907'
+const EMAIL = '123@naver.com'
+const PASSWORD = '123456789'
 
 
 export const signIn = (email, password) => {
