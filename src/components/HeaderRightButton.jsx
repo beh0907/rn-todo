@@ -8,7 +8,7 @@ const HeaderRightButton = ({tintColor}) => {
     const navigation = useNavigation()
 
     return (
-        <Pressable onPress={() => navigation.navigate('Settings')}>
+        <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={10}>
             <MaterialCommunityIcons name="cog"
                                     size={20}
                                     color={tintColor}

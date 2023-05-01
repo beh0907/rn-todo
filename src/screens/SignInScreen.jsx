@@ -1,17 +1,29 @@
-import {Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View, Keyboard, Alert} from "react-native";
+import {
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    StyleSheet,
+    View,
+    Keyboard,
+    Alert,
+} from "react-native";
 import Input, {IconNames, KeyboardTypes, ReturnKeyTypes} from "../components/Input";
 import SafeInputView from "../components/SafeInputView";
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import Button from "../components/Button";
 import {signIn} from "../api/Auth";
 import PropTypes from "prop-types";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useUserContext} from "../contexts/UserContext";
 
-const SignInScreen = ({navigation}) => {
+const SignInScreen = () => {
     const [email, setEmail] = useState('123@naver.com')
     const [password, setPassword] = useState('123456789')
     const [disabled, setDisabled] = useState(true)
     const [isLoading, setIsLoading] = useState(false)
     const passwordRef = useRef(null)
+    const {setUser} = useUserContext()
 
     const onSubmit = async () => {
         if (isLoading || disabled) return
@@ -20,14 +32,17 @@ const SignInScreen = ({navigation}) => {
             setIsLoading(true)
             Keyboard.dismiss()
             const data = await signIn(email, password);
-            console.log('data', data)
             setIsLoading(false)
 
             // 리스트 화면이동 이동
-            navigation.navigate('List')
+            setUser(data)
         } catch (e) {
             Alert.alert('로그인 실패', e, [
-                {text: '확인', onPress: () => {setIsLoading(false)}}
+                {
+                    text: '확인', onPress: () => {
+                        setIsLoading(false)
+                    }
+                }
             ])
         }
     }
@@ -38,7 +53,7 @@ const SignInScreen = ({navigation}) => {
 
     return (
         <SafeInputView>
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Image
                     source={require('../../assets/main.png')}
                     style={styles.image}
@@ -48,20 +63,21 @@ const SignInScreen = ({navigation}) => {
                        returnKeyType={ReturnKeyTypes.NEXT} value={email}
                        onChangeText={email => setEmail(email.trim())}
                        onSubmitEditing={() => passwordRef.current.focus()}/>
-                <Input title={'비밀번호'} returnKeyType={ReturnKeyTypes.DONE} value={password} iconName={IconNames.PASSWORD}
+                <Input title={'비밀번호'} returnKeyType={ReturnKeyTypes.DONE} value={password}
+                       iconName={IconNames.PASSWORD}
                        onChangeText={password => setPassword(password.trim())} ref={passwordRef} secureTextEntry
                        onSubmitEditing={onSubmit}/>
 
                 <View style={styles.buttonContainer}>
-                    <Button title="로그인" onPress={onSubmit} disabled={disabled} isLoading={isLoading}/>
+                    <Button title="로그인" onPress={onSubmit} disabled={disabled} isLoading={isLoading}r/>
                 </View>
-            </View>
+            </SafeAreaView>
         </SafeInputView>
     )
 }
 
 SignInScreen.protTypes = {
-    navigation:PropTypes.object
+    navigation: PropTypes.object
 }
 
 const styles = StyleSheet.create({

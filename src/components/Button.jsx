@@ -1,16 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ActivityIndicator, Pressable, StyleSheet, Text, View} from "react-native";
-import {GRAY, PRIMARY, WHITE} from "../color";
+import {GRAY, PRIMARY, WHITE, DANGER} from "../color";
 
-const Button = ({title, disabled, isLoading, ...props}) => {
+export const ButtonTypes = {
+    PRIMARY: 'PRIMARY',
+    DANGER: 'DANGER'
+}
+
+const Button = ({title, disabled, isLoading, buttonType, onPress}) => {
+
+    const colors = {PRIMARY, DANGER}
+
     return (
-        <Pressable {...props}
+        <Pressable onPress={onPress}
                    disabled={disabled}
                    style={({pressed}) => [
                        styles.container,
-                       pressed && {backgroudColor: PRIMARY.DARK},
-                       disabled && {backgroudColor: PRIMARY.LIGHT, opacity: 0.6},
+                       {backgroudColor: colors[buttonType].DEFAULT},
+                       pressed && {backgroudColor: colors[buttonType].DARK},
+                       disabled && {backgroudColor: colors[buttonType].LIGHT, opacity: 0.6},
                    ]}>
 
             {isLoading ?
@@ -24,10 +33,15 @@ const Button = ({title, disabled, isLoading, ...props}) => {
     );
 }
 
+Button.defaultProps = {
+    buttonType: ButtonTypes.PRIMARY
+}
+
 Button.propTypes = {
     title: PropTypes.string.isRequired,
     onPress: PropTypes.func.isRequired,
-    disabled: PropTypes.bool
+    disabled: PropTypes.bool,
+    buttonType: PropTypes.oneOf(Object.values(ButtonTypes))
 };
 
 const styles = StyleSheet.create({
@@ -35,8 +49,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingVertical: 20,
         justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: PRIMARY.DARK
+        alignItems: 'center'
     },
     title: {
         color: WHITE,
