@@ -1,23 +1,20 @@
-import {Button, StyleSheet, Text, View} from "react-native";
+import React from "react";
+import EmptyList from "../components/EmptyList";
+import List from "../components/List";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {View} from "react-native";
+import InputFAB from "../components/InputFAB";
 
-const ListScreen = ({navigation, route}) => {
-    console.log('rendering ListScreen:', route.params)
+const ListScreen = () => {
+    const {bottom} = useSafeAreaInsets()
+    const todos = []
 
     return (
-        <View style={styles.container}>
-            <Text style={{fontSize: 30}}>List Screen</Text>
-            <Button title={"push"} onPress={() => navigation.push('List')}/>
-            <Button title={"navigate"} onPress={() => navigation.navigate('List', {ts: Date.now()})}/>
+        <View style={{flex: 1, paddingBottom: bottom}}>
+            {todos.length ? <List data={todos}/> : <EmptyList/>}
+            <InputFAB/>
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    }
-})
 
 export default ListScreen
