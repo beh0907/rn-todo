@@ -1,28 +1,65 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Keyboard, Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View} from "react-native";
+import {Animated, Keyboard, Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View} from "react-native";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
-import {PRIMARY, WHITE} from "../color";
+import {BLACK, PRIMARY, WHITE} from "../color";
+import PropTypes from "prop-types";
 
+const RIGHT = 10
 const BOTTOM = 30
+const BUTTON_WIDTH = 60
 
-const InputFAB = () => {
+const InputFAB = ({onInsert, isBottom}) => {
     const [text, setText] = useState('');
     const [isOpened, setIsOpened] = useState(false);
     const inputRef = useRef();
     const windowWidth = useWindowDimensions().width;
     const [keyboardHeight, setKeyboardHeight] = useState(BOTTOM)
 
+    const inputWidth = useRef(new Animated.Value(BUTTON_WIDTH)).current
+    const buttonRotation = useRef(new Animated.Value(0)).current;
+    const buttonRight = useRef(new Animated.Value(RIGHT)).current;
+
     const open = () => {
-        console.log('22222')
-        inputRef.current.focus()
-        setIsOpened(true)
+        setIsOpened(true);
+        Animated.timing(inputWidth, {
+            toValue: windowWidth - 20,
+            useNativeDriver: false,
+            duration: 300,
+        }).start(() => {
+            inputRef.current.focus();
+        });
+
+        Animated.spring(buttonRotation, {
+            toValue: 1,
+            useNativeDriver: false,
+            bounciness: 20,
+        }).start();
     }
 
     const close = () => {
-        inputRef.current.blur()
-        setText('')
-        setIsOpened(false)
+        if (isOpened) {
+            setText('');
+            setIsOpened(false);
+            Animated.timing(inputWidth, {
+                toValue: BUTTON_WIDTH,
+                useNativeDriver: false,
+                duration: 300,
+            }).start(() => {
+                inputRef.current.blur();
+            });
+
+            Animated.spring(buttonRotation, {
+                toValue: 0,
+                useNativeDriver: false,
+                bounciness: 20,
+            }).start();
+        }
     }
+
+    const spin = buttonRotation.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '315deg'],
+    })
 
     const onPressButton = () => {
         isOpened ? close() : open()
@@ -30,63 +67,115 @@ const InputFAB = () => {
 
     useEffect(() => {
         if (Platform.OS === 'ios') {
-            Keyboard.addListener('keyboardWillShow', e => {
-                setKeyboardHeight(e.endCoordinates.height + BOTTOM)
+            const show = Keyboard.addListener('keyboardWillShow', (e) => {
+                setKeyboardHeight(e.endCoordinates.height + BOTTOM);
             })
-            Keyboard.addListener('keyboardWillHide', e => {
-                setKeyboardHeight(BOTTOM)
+            const hide = Keyboard.addListener('keyboardWillHide', () => {
+                setKeyboardHeight(BOTTOM);
             })
+
+            return () => {
+                show.remove();
+                hide.remove();
+            }
         }
     }, [])
 
+    useEffect(() => {
+        Animated.timing(buttonRight, {
+            toValue: isBottom ? RIGHT - BUTTON_WIDTH : RIGHT,
+            useNativeDriver: false,
+        }).start();
+    }, [buttonRight, isBottom])
+
+    const onPressInsert = () => {
+        const task = text.trim()
+        if (task) {
+            onInsert(task)
+            setText('')
+        }
+    }
+
     return (
         <>
-            <View
-                style={[styles.position, styles.shape, {
-                    justifyContent: 'center',
-                    bottom: keyboardHeight
-                }, isOpened && {width: windowWidth - 20}]}>
+            <Animated.View
+                style={[
+                    styles.shape,
+                    styles.shadow,
+                    {
+                        justifyContent: 'center',
+                        bottom: keyboardHeight,
+                        width: inputWidth,
+                        right: buttonRight,
+                        position: 'absolute',
+                    },
+                ]}
+            >
                 <TextInput value={text} onChangeText={text => setText(text)}
                            style={styles.input} autoCapitalize={"none"}
                            autoCorrect={false} textContentType={"none"}
                            keyboardAppearance={"light"} returnKeyType={"done"}
-                           ref={inputRef} onBlur={close}/>
-            </View>
+                           ref={inputRef} onBlur={close}
+                           onSubmitEditing={onPressInsert}/>
+            </Animated.View>
 
-            <Pressable style={({pressed}) => [
-                styles.position,
-                styles.shape,
-                styles.button,
-                pressed && {backgroundColor: PRIMARY.DARK},
-                {bottom: keyboardHeight}
-            ]}
-                       onPress={onPressButton}>
-                <MaterialCommunityIcons name={"plus"} size={24} color={WHITE}/>
-            </Pressable>
+            <Animated.View
+                style={[
+                    styles.shape,
+                    {
+                        bottom: keyboardHeight,
+                        transform: [{rotate: spin}],
+                        right: buttonRight,
+                        position: 'absolute',
+                    },
+                ]}
+            >
+                <Pressable
+                    style={({pressed}) => [
+                        styles.shape,
+                        styles.button,
+                        pressed && {backgroundColor: PRIMARY.DARK},
+                    ]}
+                    onPress={onPressButton}
+                >
+                    <MaterialCommunityIcons name="plus" size={24} color={WHITE}/>
+                </Pressable>
+            </Animated.View>
         </>
     );
 };
 
+InputFAB.propTypes = {
+    onInsert: PropTypes.func.isRequired,
+    isBottom: PropTypes.bool.isRequired,
+}
+
 const styles = StyleSheet.create({
-    position: {
-        position: 'absolute',
-        bottom: BOTTOM,
-        right: 10,
-    },
     shape: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: BUTTON_WIDTH,
+        height: BUTTON_WIDTH,
+        borderRadius: BUTTON_WIDTH / 2,
         backgroundColor: PRIMARY.DEFAULT
     },
     input: {
         color: WHITE,
         paddingLeft: 20,
-        paddingRight: 70
+        paddingRight: BUTTON_WIDTH + 10
     },
     button: {
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    shadow: {
+        shadowColor: BLACK,
+        ...Platform.select({
+            ios: {
+                shadowOffset: {width: 2, height: 4},
+                shadowOpacity: 0.5,
+                shadowRadius: 5
+            },
+            android: {elevation: 5}
+        })
     }
 })
 

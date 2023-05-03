@@ -5,7 +5,7 @@ import {BLACK, DANGER, GRAY, PRIMARY} from "../color";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 
 
-const ListItem = memo(({item}) => {
+const ListItem = memo(({item, onDelete, onToggle}) => {
     const checkboxProps = {
         name: item.isDone ? 'checkbox-marked' : 'checkbox-blank-outline',
         color: item.isDone ? PRIMARY.DEFAULT : BLACK,
@@ -14,7 +14,7 @@ const ListItem = memo(({item}) => {
 
     return (
         <View style={styles.contatiner}>
-            <Pressable onPress={() => {}} hitSlop={10}>
+            <Pressable onPress={() => onToggle(item.id)} hitSlop={10}>
                 <MaterialCommunityIcons {...checkboxProps}/>
             </Pressable>
 
@@ -22,9 +22,8 @@ const ListItem = memo(({item}) => {
                 <Text style={{fontSize: 20}}>{item.task}</Text>
             </View>
 
-            <Pressable onPress={() => {
-            }} hitSlop={10}>
-                <MaterialCommunityIcons name={"trash-can"} size={20} color={DANGER.LIGHT}/>
+            <Pressable onPress={() => onDelete(item.id)} hitSlop={10}>
+                <MaterialCommunityIcons name={"trash-can"} size={20} color={DANGER.DEFAULT}/>
             </Pressable>
         </View>
     )
@@ -33,7 +32,9 @@ const ListItem = memo(({item}) => {
 ListItem.displayName = 'ListItem'
 
 ListItem.propTypes = {
-    item: PropTypes.object.isRequired
+    item: PropTypes.object.isRequired,
+    onDelete: PropTypes.func.isRequired,
+    onToggle: PropTypes.func.isRequired,
 };
 
 const styles = StyleSheet.create({
